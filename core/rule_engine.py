@@ -47,15 +47,24 @@ class RuleEngine:
                     "description": f"Door width {width}\" is below the 32\" minimum required for egress."
                 })
 
-        # 2. Ramp Slope Check
-        if "RAMP" in etype:
-            slope = bim_element.get("slope_ratio", 0)
-            if slope > self.IBC_STANDARDS["MAX_RAMP_SLOPE"]:
+        # 3. Stair Width Check
+        if "STAIR" in etype:
+            width = bim_element.get("width_in", 0)
+            if width < self.IBC_STANDARDS["MIN_STAIR_WIDTH_IN"]:
                 violations.append({
-                    "code": "IBC-1012.2",
+                    "code": "IBC-1011.2",
                     "severity": "CRITICAL",
-                    "description": f"Ramp slope {slope} exceeds the 1:12 (0.0833) limit."
+                    "description": f"Stair width {width}\" is below the 44\" minimum required for egress."
                 })
+
+        # 4. Mock Fire Safety Check (Travel Distance)
+        travel_dist = bim_element.get("travel_distance_ft", 0)
+        if travel_dist > 200: # Standard IBC 200ft limit for non-sprinkled
+            violations.append({
+                "code": "IBC-1017.2",
+                "severity": "WARNING",
+                "description": f"Maximum travel distance {travel_dist}' exceeds the 200' limit (BS/IBC compliant)."
+            })
 
         is_compliant = len(violations) == 0
         
