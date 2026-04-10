@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+langchain
+openai
+pandas
+sqlite3
+python-multipart
+pydantic-settings
