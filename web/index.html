@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIM-Lawyer | Normative Audit Dashboard</title>
+    <style>
+        :root {
+            --bg: #0a0b10;
+            --accent: #0077ff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+        .hero {
+            padding: 3rem 0;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(0, 119, 255, 0.05) 0%, transparent 70%);
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(255, 100, 100, 0.2);
+            color: #ff6464;
+        }
+        .success {
+            background: rgba(100, 255, 100, 0.2);
+            color: #64ff64;
+        }
+        h1 { font-weight: 300; letter-spacing: 2px; }
+        .logo { color: var(--accent); font-weight: 800; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">BIM-LAWYER</div>
+            <nav>
+                <span>Dashboard</span> / <span>Norms</span> / <span>Settings</span>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <h1>Automated Code Compliance Audit</h1>
+            <p>Scanning BIM Geometry vs. International Standards (ADA / IBC / NBR)</p>
+        </section>
+
+        <div class="stat-grid">
+            <div class="card">
+                <h3>Overall Compliance</h3>
+                <div style="font-size: 2.5rem; color: var(--accent);">84%</div>
+                <p>Based on 152 checked elements</p>
+            </div>
+            <div class="card">
+                <h3>Active Jurisdiction</h3>
+                <div style="font-size: 1.2rem;">ADA Standards (USA)</div>
+                <p>Version 2010 v1.2</p>
+            </div>
+            <div class="card">
+                <h3>System Status</h3>
+                <span class="status-badge success">RAG Online</span>
+                <p>AI Context: 15 Norma Documents Indexed</p>
+            </div>
+        </div>
+
+        <h2 style="margin-top: 3rem;">Recent Violations</h2>
+        <div class="card" style="margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between;">
+                <strong>Door Width Violation (REV-101)</strong>
+                <span class="status-badge">FAILED</span>
+            </div>
+            <p>Detected: 0.70m | Required: 0.81m (ADA §404.2.3)</p>
+        </div>
+    </div>
+</body>
+</html>
