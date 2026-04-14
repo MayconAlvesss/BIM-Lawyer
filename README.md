@@ -1,83 +1,97 @@
-# <p align="center">BIM-Lawyer | Advanced Normative Auditing</p>
+# <p align="center">BIM-Lawyer | Production-Grade Normative Audit Engine</p>
 
 <p align="center">
   <img src="https://img.icons8.com/wired/128/007ACC/scales.png" width="80" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Enterprise%20V2-success?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Status-Production%20Core-success?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python" />
   <img src="https://img.shields.io/badge/C%23-Revit%20API-purple?style=for-the-badge&logo=c-sharp" />
   <img src="https://img.shields.io/badge/LangChain-RAG-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker" />
 </p>
 
 ---
 
-### ⚖️ Architectural Foundation
+### 🏛️ Architecture & Global Logic
 
-**BIM-Lawyer** is a high-performance, production-ready normative auditing system for the AEC (Architecture, Engineering, and Construction) industry. It leverages an object-oriented **Strategy Pattern** to validate complex BIM geometry against international building codes (ADA, IBC, NBR 9050).
+**BIM-Lawyer** is an enterprise-grade normative auditing system for AEC workflows. Engineered to bridge the gap between building codes and 3D geometry, it implements an asynchronous pipeline for real-time compliance validation.
 
-Designed for feature parity with **EcoBIM-Logic**, this repository demonstrates a mature multi-tier service architecture.
+Inspired by the technical precision of **EcoBIM-Logic**, this system utilizes a multi-tier architecture to ensure scalability and regulatory accuracy.
 
 ```mermaid
 graph TD
-    A[Revit C# Plugin] -- REST API / JSON --> B[FastAPI Gateway]
-    B -- Dependency Injection --> C[Security/Auth Middleware]
-    C -- Object Routing --> D[Normative Engine]
-    D -- Strategy Pattern --> E[Geometric Rules]
-    D -- Vector Search --> F[LangChain RAG]
-    F -- Retrieval --> G[(ChromaDB Norms)]
-    B -- Reporting --> H[PDF/JSON Generator]
+    subgraph Client_Side
+        A[Autodesk Revit] --> B[C# Bridge Plugin]
+    end
+    subgraph Backend_Infrastructure
+        B -- JSON/REST --> C[FastAPI Gateway]
+        C --> D[Security & Performance Middleware]
+        D --> E[Normative Strategy Engine]
+    end
+    subgraph Intelligence_Layer
+        E -- Geometric Constraints --> F[Validation Brain]
+        E -- Semantic Queries --> G[LangChain RAG]
+        G -- Retrieval --> H[(ChromaDB Vector Store)]
+    end
+    subgraph Output
+        F --> I[Compliance Database]
+        F --> J[Audit Report PDF/JSON]
+    end
 ```
 
-### 🚀 Key Enterprise Features
+### 🚀 Advanced Capabilities
 
-- **Multi-Language Bridge:** A complete C# Revit Add-in that serializes internal geometry and communicates with the Python backend.
-- **Automated Geometry Normalization:** Native Revit "Decimal Feet" units are automatically converted to Metric validation models via Pydantic `@validators`.
-- **RAG-Powered Explanations:** Beyond "Fail/Pass", the system cites exact regulatory clauses using a LangChain-based Vector Retrieval system.
-- **Production Infrastructure:** Fully containerized via **Docker**, featuring centralized logging and global configuration.
-
----
-
-### 🛠️ Professional Setup & Deployment
-
-#### Backend (Python)
-1. **Environment Setup:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. **Launch API:**
-   ```bash
-   uvicorn api.main:app --reload
-   ```
-3. **Docker Deployment:**
-   ```bash
-   docker-compose up --build
-   ```
-
-#### Revit Plugin (C#)
-1. Open `plugin/BIMLawyer.csproj` in Visual Studio 2022.
-2. Build in **x64** to automatically deploy the `.addin` and `.dll` to your Revit Addins folder.
-3. Use the **BIM-Lawyer** Ribbon Tab in Revit.
+- **High-Density Data Extraction:** Custom C# manifest collecting spatial parameters, hierarchy, and metadata directly from the Revit database.
+- **Deterministic Validation:** Rule-based engine using the **Strategy Pattern** to handle jurisdictional variations (ADA, IBC, NBR).
+- **IA-Driven Foundation:** Retrieval-Augmented Generation (RAG) providing legal justification for every geometric violation discovered.
+- **Enterprise Reporting:** Automated generation of professional compliance summaries for stakeholder review.
 
 ---
 
-### 📂 Structural Blueprint
+### 📂 Repository Structure
 
-- `api/`: Auth, Middleware, and APIRouter definitions.
-- `config/`: Centralized Pydantic settings.
-- `core/`: Validation schemas, geometric math, and normative strategies.
-- `database/`: Vector store artifacts and normative databases.
-- `docker/`: Production deployment scripts.
-- `lab/`: Integrated audit simulations and debug tools.
-- `llm/`: LangChain RAG implementation.
-- `plugin/`: Professional C# project structure.
-- `utils/`: Logging and PDF reporting utilities.
-- `tests/`: Automated unit and integration test suite.
+- **`api/`**: Authentication layers, performance middleware, and APIRouter.
+- **`config/`**: Centralized settings for global state and environment variables.
+- **`core/`**: The validation engine, geometric utilities, and Pydantic schemas.
+- **`database/`**: Vector store artifacts and local normative definitions.
+- **`docker/`**: Production-ready containerization logic.
+- **`plugin/`**: Modular C# source code for Revit integration.
+- **`utils/`**: Enterprise logging and professional PDF report generation.
+- **`tests/`**: Unit and integration test suites for core logic.
+
+---
+
+### 🛠️ Professional Setup
+
+#### Requirements
+- Python 3.12+
+- Visual Studio 2022 (for C# components)
+- Docker (optional)
+
+#### Deployment
+```bash
+# Backend Setup
+pip install -r requirements.txt
+uvicorn api.main:app --reload
+
+# Revit Setup
+# Build the .csproj file to deploy the .addin manifest automatically.
+```
 
 ---
 
 <p align="center">
-  <sub>Developed by Maycon Alves | BIM Developer | AEC Technology Specialist</sub>
+  <b>Developed by Maycon Alves</b><br>
+  <i>BIM Developer | AEC Technology Specialist</i>
+</p>
+
+<p align="center">
+  <a href="https://github.com/MayconAlvesss">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
+  <a href="https://www.linkedin.com/in/mayconalvess/">
+    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" />
+  </a>
 </p>
