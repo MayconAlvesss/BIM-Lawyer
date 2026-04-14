@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>BIM-Lawyer Audit</Name>
+    <Assembly>BIMLawyer.dll</Assembly>
+    <FullClassName>BIMLawyerPlugin.BIMLawyerApp</FullClassName>
+    <ClientId>f62b64d2-d6fc-408c-81a2-8dabc7b747e8</ClientId>
+    <VendorId>MAYCON</VendorId>
+    <VendorDescription>Maycon Alves - BIM Developer</VendorDescription>
+  </AddIn>
+</RevitAddIns>
