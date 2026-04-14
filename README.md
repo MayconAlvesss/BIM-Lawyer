@@ -1,57 +1,41 @@
-# 🧠 BIM-Lawyer
+# <p align="center">BIM-Lawyer</p>
 
-**Autonomous Normative Auditor & Building Code Compliance AI**
+<p align="center">
+  <img src="https://img.icons8.com/wired/128/007ACC/scales.png" width="80" />
+</p>
 
-BIM-Lawyer is a normative intelligence engine designed to automate the process of **Rule Checking (ARC)** in the AECO industry. It translates complex building codes (IBC, ADA, ISO) into executable logic, acting as an autonomous auditor that ensures design compliance directly from BIM model data.
+> [!IMPORTANT]
+> **Project Status: Concept / Scaffold (2028+)**
+> This repository is part of Maycon Alves' technical vision for the AEC Tech ecosystem. It is currently in the **concept and initial architecture phase**. Full development and core implementation will resume after the author returns from his mission in **2028**.
+
+---
+
+### ⚖️ Technical Overview
+**BIM-Lawyer** is an automated AEC code compliance and normative audit engine. It bridges the gap between static building codes and dynamic BIM geometry by providing real-time verification and AI-driven remediation suggestions.
+
+Designed to mirror the high-fidelity orchestration of **EcoBIM-Logic**, it focuses on cross-jurisdiction legal auditing.
+
+### 🚀 Core Capabilities
+- **Multi-Jurisdiction Audit:** Real-time checking against **ADA (USA)**, **IBC (International)**, and **NBR 9050 (Brazil)**.
+- **Parametric Rule Engine:** High-performance geometric validation for doors, ramps, stairs, and egress routes.
+- **Normative RAG Hybrid:** AI-driven explanation engine that provides the legal basis for every violation detected.
+- **Revit Native Bridge:** Seamless integration via C# plugin for automated data extraction and result visualization.
+
+### 🛠️ Tech Stack
+- **Backend:** `FastAPI`, `Pydantic`
+- **Logic:** `Modular Rule Engine (Python 3.12+)`
+- **Intelligence:** `LangChain`, `Gemini AI` (RAG-LLM Hybrid)
+- **Plugin:** `C# / Revit API`
 
 ---
 
-## 🚀 Key Features
+### 📂 Repository Structure
+- `api/`: High-fidelity FastAPI backend and audit endpoints.
+- `core/`: Jurisdiction-aware rule engine and data validation schemas.
+- `database/`: Structured normative thresholds and context data.
+- `llm/`: Normative RAG implementation for code reference lookups.
+- `web/`: Cinematic Glassmorphism dashboard for audit reporting.
 
-- **Automated Rule Checking (ARC)**: Validates geometric parameters (door widths, ramp slopes, stair clearances) against **IBC 2021** and **ADA** standards.
-- **Normative RAG-LLM**: A Retrieval-Augmented Generation layer that interprets natural language building codes to explain violations.
-- **Cloud-Native Ingestion**: Simulated IFC extractors ready for integration with Forge, Speckle, or private BIM servers.
-- **Autonomous Audit Reports**: Generates detailed compliance risk summaries and AI-driven design remedies.
-
-## 🏗️ Architecture
-
-```mermaid
-graph LR
-    A[BIM Model / IFC] --> B[IFCParsers]
-    B --> C[RuleEngine]
-    C -->|Violations| D[NormativeRAG]
-    D --> E[Correction Suggestions]
-    E --> F[Audit Report JSON]
-```
-
-## 🛠️ Getting Started
-
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Integration Example**:
-   ```python
-   from core.rule_engine import RuleEngine
-   from ingestion.ifc_mock import IFCMockParser
-   
-   # 1. Fetch data
-   elements = IFCMockParser().get_extracted_elements()
-   # 2. Audit
-   report = RuleEngine().batch_audit(elements)
-   ```
-
-3. **Start Audit Service**:
-   ```bash
-   uvicorn api.main:app --reload
-   ```
-
-## ⚖️ Standards Supported
-- **International Building Code (IBC) 2018/2021**
-- **ADA Standards for Accessible Design**
-- **ISO 16739 (IFC Data Schemas)**
-- **ISO 21597 (Information container for data drop)**
-
----
-*Developed by Maycon Alves for the NexusTwin Ecosystem.*
+<p align="center">
+  <sub>BIM Developer | AEC Tech Specialist | International Normative Audit</sub>
+</p>
