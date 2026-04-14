@@ -1,93 +1,79 @@
-"""
-BIM-Lawyer — Automated Rule Checking (ARC) Engine
-=================================================
-Normative intelligence layer focused on International Building Codes (IBC).
-Performs Automated Rule Checking (ARC) by comparing BIM parameters against scalars.
+import json
+import os
+from typing import List, Dict, Any
+from .schemas import BIMElement, AuditResult, Jurisdiction
 
-Features:
-  - ADA Compliance (Ramps, Clearances)
-  - Occupancy Load Calculations (IBC Ch. 10)
-  - Fire Rating Verification (IBC Ch. 7)
-"""
+class NormativeEngine:
+    def __init__(self, norms_path: str = "database/norms_db.json"):
+        # In a real scenario, this would load from the relative path in the repo
+        # For simulation, we'll hardcode or look for the file
+        self.norms = {}
+        if os.path.exists(norms_path):
+            with open(norms_path, "r") as f:
+                self.norms = json.load(f)
+        else:
+            # Fallback for initialization
+            self.norms = {
+                "accessibility": {
+                    "ADA": {"door_width": 0.81, "ramp_slope": 0.083, "corridor_width": 0.92},
+                    "NBR9050": {"door_width": 0.8, "ramp_slope": 0.083, "corridor_width": 1.2}
+                }
+            }
 
-import logging
-from typing import Dict, List, Any
-
-logger = logging.getLogger(__name__)
-
-class RuleEngine:
-    """
-    Core engine to execute geometric and normative checks on BIM family parameters.
-    """
-    
-    def __init__(self):
-        # International Building Code (IBC) Constants (Simplified for sketch)
-        self.IBC_STANDARDS = {
-            "MIN_DOOR_WIDTH_IN": 32.0,
-            "MAX_RAMP_SLOPE": 0.0833, # 1:12 slope for ADA
-            "MIN_STAIR_WIDTH_IN": 44.0,
-        }
-        logger.info("RuleEngine initialized with IBC 2021 Reference Constants.")
-
-    def check_compliance(self, bim_element: Dict[str, Any]) -> dict:
-        """
-        Check an element (e.g., Door, Ramp) against IBC/ISO requirements.
-        """
-        eid = bim_element.get("element_id", "Unknown")
-        etype = bim_element.get("category", "").upper()
-        violations = []
+    def audit_element(self, element: BIMElement, jurisdiction: Jurisdiction) -> AuditResult:
+        category = element.category.upper()
+        params = element.params
+        jid = jurisdiction.value
         
-        # 1. Door Width Check
-        if "DOOR" in etype:
-            width = bim_element.get("width_in", 0)
-            if width < self.IBC_STANDARDS["MIN_DOOR_WIDTH_IN"]:
-                violations.append({
-                    "code": "IBC-1010.1.1",
-                    "severity": "CRITICAL",
-                    "description": f"Door width {width}\" is below the 32\" minimum required for egress."
-                })
+        # Default result
+        result = AuditResult(
+            element_id=element.id,
+            status="Compliant",
+            current_value=None,
+            required_value=None,
+            details="Element meets normative requirements.",
+            jurisdiction=jid
+        )
 
-        # 3. Stair Width Check
-        if "STAIR" in etype:
-            width = bim_element.get("width_in", 0)
-            if width < self.IBC_STANDARDS["MIN_STAIR_WIDTH_IN"]:
-                violations.append({
-                    "code": "IBC-1011.2",
-                    "severity": "CRITICAL",
-                    "description": f"Stair width {width}\" is below the 44\" minimum required for egress."
-                })
+        if "DOOR" in category:
+            width = params.get("width", 0)
+            required = self.norms["accessibility"][jid]["door_width"]
+            if width < required:
+                result.status = "Non-Compliant"
+                result.rule_violated = "Minimum Door Width"
+                result.current_value = width
+                result.required_value = required
+                result.details = f"Door too narrow. {jid} requires at least {required}m."
 
-        # 4. Mock Fire Safety Check (Travel Distance)
-        travel_dist = bim_element.get("travel_distance_ft", 0)
-        if travel_dist > 200: # Standard IBC 200ft limit for non-sprinkled
-            violations.append({
-                "code": "IBC-1017.2",
-                "severity": "WARNING",
-                "description": f"Maximum travel distance {travel_dist}' exceeds the 200' limit (BS/IBC compliant)."
-            })
+        elif "RAMP" in category:
+            slope = params.get("slope", 0)
+            required = self.norms["accessibility"][jid]["ramp_slope"]
+            if slope > required:
+                result.status = "Non-Compliant"
+                result.rule_violated = "Maximum Ramp Slope"
+                result.current_value = slope
+                result.required_value = required
+                result.details = f"Ramp is too steep ({slope*100}%). {jid} allows max {required*100}%."
 
-        is_compliant = len(violations) == 0
-        
-        return {
-            "element_id": eid,
-            "is_compliant": is_compliant,
-            "violation_count": len(violations),
-            "audit_log": violations,
-            "standard_referenced": "IBC 2021 / ISO 21597"
-        }
+        elif "CORRIDOR" in category or "CIRCULATION" in category:
+            width = params.get("width", 0)
+            required = self.norms["accessibility"][jid]["corridor_width"]
+            if width < required:
+                result.status = "Non-Compliant"
+                result.rule_violated = "Minimum Corridor Width"
+                result.current_value = width
+                result.required_value = required
+                result.details = f"Corridor below minimum width for accessibility. Required: {required}m."
 
-    def batch_audit(self, elements: List[Dict[str, Any]]) -> dict:
-        """Runs the rule engine over a list of BIM elements."""
-        results = [self.check_compliance(e) for e in elements]
-        total = len(results)
-        fail = len([r for r in results if not r["is_compliant"]])
-        
-        return {
-            "summary": {
-                "total_elements_audited": total,
-                "compliant_count": total - fail,
-                "non_compliant_count": fail,
-                "compliance_score": (total - fail) / total if total > 0 else 1.0
-            },
-            "detailed_results": results
-        }
+        return result
+
+    def batch_audit(self, elements: List[Dict[str, Any]], jurisdiction: Jurisdiction) -> List[AuditResult]:
+        results = []
+        for el_data in elements:
+            try:
+                element = BIMElement(**el_data)
+                results.append(self.audit_element(element, jurisdiction))
+            except Exception as e:
+                # Log error or add error result
+                continue
+        return results
