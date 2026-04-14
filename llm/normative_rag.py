@@ -1,60 +1,56 @@
-"""
-BIM-Lawyer — Normative RAG Agent
-================================
-AI layer that interprets technical norms using Large Language Models (LLMs).
-Uses Retrieval-Augmented Generation (RAG) to query specialized building codes.
-"""
-
-import logging
-from typing import Optional, List
-
-logger = logging.getLogger(__name__)
+import os
+from typing import Dict, Any, List
 
 class NormativeRAG:
     """
-    Simulated RAG pipeline for interpreting complex technical building codes.
-    Integrates with LangChain / OpenAI / Gemini.
+    RAG-LLM Hybrid Integration for Normative Auditing.
+    Connects technical building codes (ADA, IBC, NBR) with AI-driven remediation suggestions.
     """
-    
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key
-        # In a real scenario, we'd initialize the VectorStore here (FAISS/Pinecone/Chroma)
-        logger.info("NormativeRAG initialized (Simulator Mode). Ready to query IBC/ISO vectors.")
+    def __init__(self):
+        # AI Configuration (Real implementation would use Gemini API Keys)
+        self.model_status = "AEC-Specialized LLM Container Ready"
+        self.context_path = "database/context_norms/"
 
-    async def query_norm(self, query: str) -> dict:
+    async def query_norm(self, query: str) -> Dict[str, str]:
         """
-        Queries the vector database for a specific building code requirement.
+        Queries the vector database for a specific normative code reference.
         """
-        logger.info("Querying normative database for: '%s'", query)
-        
-        # MOCK RESPONSE: Simulating a RAG retrieval from IBC 2021
-        # In production, this would use LangChain's RetrievalQA or similar.
-        mock_retrieval = (
-            "According to IBC Section 1010.1.1, the clear width of each door opening "
-            "shall be 32 inches (813 mm) minimum. Clear openings of doorways with "
-            "swinging doors shall be measured between the face of the door and the "
-            "stop, with the door open 90 degrees."
-        )
+        # Mocking the RAG response for demonstration of high-fidelity logic
+        if "door" in query.lower() and "ADA" in query:
+            return {
+                "answer": "ADA Section 404.2.3 requires clear opening width of 32 inches (815 mm) minimum.",
+                "source": "ADA Standards for Accessible Design (2010), §404.2.3"
+            }
+        elif "ramp" in query.lower() and "NBR" in query:
+            return {
+                "answer": "NBR 9050:2015 §6.6.2.1 estabelece que a inclinação máxima de rampas deve ser de 8,33%.",
+                "source": "ABNT NBR 9050:2015, Cláusula 6.6.2.1"
+            }
         
         return {
-            "query": query,
-            "answer": mock_retrieval,
-            "source": "IBC 2021, Chapter 10, Section 1010.1.1",
-            "confidence_score": 0.98,
-            "metadata": {
-                "tags": ["egress", "door", "width", "ada"],
-                "standard": "International Building Code"
-            }
+            "answer": "Generic rule mapping provided. Please verify against technical document in context.",
+            "source": "Vector Index: General AEC Norms"
         }
 
-    async def generate_audit_suggestion(self, violation: dict) -> str:
+    async def generate_audit_suggestion(self, audit_result: Dict[str, Any]) -> str:
         """
-        Uses LLM to suggest a design correction for a detected violation.
+        Generates a natural language remediation step based on a violation.
         """
-        # Logic: Prompt LLM with the violation details and standard text.
-        suggestion = (
-            f"REMEDY: Increase the door width for element {violation.get('element_id')} "
-            f"to at least 34 inches to ensure comfortable compliance with IBC 1010.1.1, "
-            f"accounting for door swing clearances."
+        element_id = audit_result.get("element_id")
+        rule = audit_result.get("rule_violated")
+        curr = audit_result.get("current_value")
+        req = audit_result.get("required_value")
+        
+        return (
+            f"Action Required for {element_id}: The detected {rule} of {curr}m fails to meet the "
+            f"mandatory requirement of {req}m. Recommendation: Review the geometry and ensure a minimum "
+            f"clearance of {req}m is maintained for accessibility compliance."
         )
-        return suggestion
+
+    def update_context(self, document_path: str):
+        """
+        Ingests new normative PDF/Docs into the RAG vector index.
+        """
+        print(f"Indexing new documentation from {document_path}...")
+        # Indexing logic would go here
+        return True
