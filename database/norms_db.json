@@ -1,0 +1,22 @@
+{
+    "accessibility": {
+        "ADA": {
+            "door_width": 0.81,
+            "ramp_slope": 0.083,
+            "corridor_width": 0.92
+        },
+        "NBR9050": {
+            "door_width": 0.8,
+            "ramp_slope": 0.083,
+            "corridor_width": 1.2
+        }
+    },
+    "fire_safety": {
+        "IBC": {
+            "min_egress_width": 1.12
+        },
+        "NBR14432": {
+            "min_egress_width": 1.1
+        }
+    }
+}
