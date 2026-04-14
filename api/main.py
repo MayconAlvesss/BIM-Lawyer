@@ -1,56 +1,53 @@
-"""
-BIM-Lawyer — FastAPI Interface
-==============================
-Cloud-based Automated Rule Checking (ARC) service.
-Exposes normative auditing and legal compliance tools for BIM models.
-"""
-
 from fastapi import FastAPI, HTTPException
 from typing import List, Dict, Any
-from core.rule_engine import RuleEngine
+from core.schemas import BatchAuditRequest, AuditResult, Jurisdiction
+from core.rule_engine import NormativeEngine
 from llm.normative_rag import NormativeRAG
 
 app = FastAPI(
     title="BIM-Lawyer API",
-    description="Autonomous Building Code Compliance & Audit Engine",
+    description="Automated AEC Code Compliance & Normative Audit Engine",
     version="1.0.0"
 )
 
 # Initialize engines
-engine = RuleEngine()
-rag    = NormativeRAG()
+engine = NormativeEngine()
+# Note: RAG requires API Keys/Settings, keeping as placeholder for logic parity
+rag = NormativeRAG() 
 
 @app.get("/")
 async def root():
     return {
-        "status": "BIM-Lawyer Audit Engine Online",
-        "compliance_standards": ["IBC 2021", "ADA", "ISO 21597"],
-        "ai_status": "RAG-LLM Hybrid Ready"
+        "status": "online",
+        "service": "BIM-Lawyer Normative Backend",
+        "jurisdictions": ["ADA", "NBR9050", "IBC"],
+        "version": "1.0.0"
     }
 
 @app.post("/audit/batch")
-async def batch_audit(elements: List[Dict[str, Any]]):
+async def batch_audit(request: BatchAuditRequest):
     """
-    Runs a batch audit session on a list of BIM elements.
+    Processes a list of BIM elements for compliance audit under a specific jurisdiction.
     """
-    if not elements:
+    if not request.elements:
         raise HTTPException(status_code=400, detail="No elements provided for audit.")
         
-    results = engine.batch_audit(elements)
+    results = engine.batch_audit([el.dict() for el in request.elements], request.jurisdiction)
     return results
 
 @app.post("/audit/explain")
-async def explain_violation(violation: Dict[str, Any]):
+async def explain_audit(result: AuditResult):
     """
-    Uses LLM to explain a specific violation and suggest design remedies.
+    Uses the RAG-LLM Hybrid engine to provide legal basis and remediation for violations.
     """
-    query = f"Explain building code violation: {violation.get('description')}"
-    explanation = await rag.query_norm(query)
-    remedy = await rag.generate_audit_suggestion(violation)
+    if result.status == "Compliant":
+        return {"message": "Audit passed. No explanation required."}
+        
+    explanation = await rag.query_norm(f"Why does a {result.rule_violated} of {result.current_value} fail in {result.jurisdiction}?")
+    suggestion = await rag.generate_audit_suggestion(result.dict())
     
     return {
-        "violation": violation,
-        "legal_reference": explanation["answer"],
-        "source": explanation["source"],
-        "ai_suggestion": remedy
+        "violation": result.rule_violated,
+        "legal_reference": explanation.get("answer", "Reference not found in context."),
+        "ai_suggestion": suggestion
     }
