@@ -128,17 +128,7 @@ class NormativeEngine:
             res = rule.evaluate(element, jurisdiction, self.norms_context)
             results.append(res)
             
-        if not results:
-            results.append(AuditResult(
-                element_id=element.id,
-                status="Compliant",
-                current_value=None,
-                required_value=None,
-                jurisdiction=jurisdiction.value,
-                details=f"No specific rule mapped for category: {category}",
-                severity="INFO"
-            ))
-            
+        # Optimization for Omni-Collector: Do not return blank Compliant rows for elements without explicit rules
         return results
 
     def batch_audit(self, elements: List[Dict[str, Any]], jurisdiction: Jurisdiction) -> List[AuditResult]:

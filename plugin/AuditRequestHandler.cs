@@ -99,20 +99,19 @@ namespace BIMLawyerPlugin
                     return;
                 }
 
-                // Data Extraction
-                var doorCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().ToList();
-                var rampCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Ramps).WhereElementIsNotElementType().ToList();
-                var windowCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Windows).WhereElementIsNotElementType().ToList();
-                var plumbingCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_PlumbingFixtures).WhereElementIsNotElementType().ToList();
-                var stairsCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Stairs).WhereElementIsNotElementType().ToList();
+                // Data Extraction: Omni-Collector Engine
+                var allElements = new FilteredElementCollector(doc)
+                    .WhereElementIsNotElementType()
+                    .Where(e => e.Category != null && e.Category.CategoryType == CategoryType.Model)
+                    .Where(e => e.get_BoundingBox(null) != null) // Ensure it is an actual physical 3D object
+                    .ToList();
 
                 var payloadElements = new List<object>();
 
-                var allElements = doorCollector.Concat(rampCollector).Concat(windowCollector).Concat(plumbingCollector).Concat(stairsCollector);
                 foreach (var el in allElements)
                 {
                     BoundingBoxXYZ bbox = el.get_BoundingBox(null);
-                    double? width = GetParameterAsDouble(el, BuiltInParameter.DOOR_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.WINDOW_WIDTH);
+                    double? width = GetParameterAsDouble(el, BuiltInParameter.DOOR_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.WINDOW_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.GENERIC_WIDTH);
                     double? sillHeight = GetParameterAsDouble(el, BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM);
                     double mockFrontalClearance = el.Category.Name.Contains("Plumbing") ? 1.10 : 0; // Mocking bad toilet clearance
 
@@ -122,11 +121,11 @@ namespace BIMLawyerPlugin
                         category = el.Category.Name,
                         units = "DECIMAL_FEET",
                         @params = new { width = width, sill_height = sillHeight, frontal_clearance = mockFrontalClearance },
-                        bounding_box = bbox != null ? new
+                        bounding_box = new
                         {
                             min = new[] { bbox.Min.X, bbox.Min.Y, bbox.Min.Z },
                             max = new[] { bbox.Max.X, bbox.Max.Y, bbox.Max.Z }
-                        } : null
+                        }
                     });
                 }
 
