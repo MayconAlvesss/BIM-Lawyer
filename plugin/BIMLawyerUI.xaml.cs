@@ -38,9 +38,28 @@ namespace BIMLawyerPlugin
             InvokeHandler("CLEAR");
         }
 
-        private void AutoFix_Click(object sender, RoutedEventArgs e)
+        private void AutoFixAll_Click(object sender, RoutedEventArgs e)
         {
-            InvokeHandler("AUTO_FIX");
+            InvokeHandler("AUTO_FIX_ALL");
+        }
+
+        private void FixSelected_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridResults.SelectedItem is AuditResultData selected)
+            {
+                _handler.ActiveSelectedElementId = selected.element_id;
+                InvokeHandler("AUTO_FIX_SELECTED");
+            }
+        }
+
+        private void GridResults_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (GridResults.SelectedItem is AuditResultData selected)
+            {
+                _handler.ActiveSelectedElementId = selected.element_id;
+                _handler.ActiveCommand = "ZOOM_TO_ELEMENT";
+                _externalEvent.Raise();
+            }
         }
 
         private void InvokeHandler(string command)
@@ -59,6 +78,7 @@ namespace BIMLawyerPlugin
             BtnAudit.IsEnabled = false;
             BtnClear.IsEnabled = false;
             BtnAutoFix.IsEnabled = false;
+            BtnFixSelected.IsEnabled = false;
 
             _externalEvent.Raise();
         }
@@ -70,6 +90,7 @@ namespace BIMLawyerPlugin
                 BtnAudit.IsEnabled = true;
                 BtnClear.IsEnabled = true;
                 BtnAutoFix.IsEnabled = true;
+                BtnFixSelected.IsEnabled = true;
             });
         }
     }

@@ -24,6 +24,7 @@ namespace BIMLawyerPlugin
         public string SelectedJurisdiction { get; set; } = "NBR9050";
         public BIMLawyerUI UIWindow { get; set; }
         public string ActiveCommand { get; set; }
+        public string ActiveSelectedElementId { get; set; }
 
         private static readonly HttpClient client = new HttpClient();
         private const string ApiEndpoint = "http://localhost:8000/api/v1/audit/batch";
@@ -45,31 +46,82 @@ namespace BIMLawyerPlugin
                     return;
                 }
                 
-                if (ActiveCommand == "AUTO_FIX")
+                if (ActiveCommand == "ZOOM_TO_ELEMENT")
                 {
-                    // Placeholder skeleton for mitigation system
-                    TaskDialog.Show("Auto-Fix Engine", "Auto-fix routines will be compiled in the next sprint.");
+                    if (!string.IsNullOrEmpty(ActiveSelectedElementId))
+                    {
+                        var targetEl = doc.GetElement(ActiveSelectedElementId);
+                        if (targetEl != null)
+                        {
+                            uidoc.Selection.SetElementIds(new List<ElementId> { targetEl.Id });
+                            uidoc.ShowElements(targetEl.Id); // Revit native Zoom to Element bounds
+                        }
+                    }
                     UIWindow?.BindDataGrid(_lastResults);
+                    return;
+                }
+
+                if (ActiveCommand == "AUTO_FIX_ALL" || ActiveCommand == "AUTO_FIX_SELECTED")
+                {
+                    using (Transaction t = new Transaction(doc, "BIM-Lawyer Auto-Fix Engine"))
+                    {
+                        t.Start();
+                        int fixedCount = 0;
+                        var targets = ActiveCommand == "AUTO_FIX_SELECTED" 
+                            ? _lastResults.Where(r => r.element_id == ActiveSelectedElementId) 
+                            : _lastResults.Where(r => r.status.Contains("Non-Compliant"));
+
+                        foreach (var target in targets)
+                        {
+                            try {
+                                Element el = doc.GetElement(target.element_id);
+                                if (el != null && target.required_value != null) {
+                                    
+                                    string rule = target.rule_violated ?? "";
+                                    double reqValFLOAT = Convert.ToDouble(target.required_value.ToString());
+                                    
+                                    if (rule.Contains("Door Width")) {
+                                        Parameter p = el.get_Parameter(BuiltInParameter.DOOR_WIDTH);
+                                        if (p != null && !p.IsReadOnly) { p.Set(reqValFLOAT); fixedCount++; target.status = "Compliant"; target.current_value = target.required_value; }
+                                    }
+                                    else if (rule.Contains("Sill Height")) {
+                                        Parameter p = el.get_Parameter(BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM);
+                                        if (p != null && !p.IsReadOnly) { p.Set(reqValFLOAT); fixedCount++; target.status = "Compliant"; target.current_value = target.required_value; }
+                                    }
+                                }
+                            } catch { } // Silent block if parameter isn't instance-writable or type bounds block it.
+                        }
+                        t.Commit();
+                        TaskDialog.Show("Mitigation Engine", $"Action Complete! Successfully adjusted {fixedCount} element(s) automatically.");
+                    }
+                    UIWindow?.BindDataGrid(_lastResults);
+                    ApplyHeatmapColors(doc, _lastResults); // Re-paint to turn them Green
                     return;
                 }
 
                 // Data Extraction
                 var doorCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().ToList();
                 var rampCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Ramps).WhereElementIsNotElementType().ToList();
+                var windowCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Windows).WhereElementIsNotElementType().ToList();
+                var plumbingCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_PlumbingFixtures).WhereElementIsNotElementType().ToList();
+                var stairsCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Stairs).WhereElementIsNotElementType().ToList();
 
                 var payloadElements = new List<object>();
 
-                foreach (var el in doorCollector.Concat(rampCollector))
+                var allElements = doorCollector.Concat(rampCollector).Concat(windowCollector).Concat(plumbingCollector).Concat(stairsCollector);
+                foreach (var el in allElements)
                 {
                     BoundingBoxXYZ bbox = el.get_BoundingBox(null);
-                    double? width = GetParameterAsDouble(el, BuiltInParameter.DOOR_WIDTH);
+                    double? width = GetParameterAsDouble(el, BuiltInParameter.DOOR_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.WINDOW_WIDTH);
+                    double? sillHeight = GetParameterAsDouble(el, BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM);
+                    double mockFrontalClearance = el.Category.Name.Contains("Plumbing") ? 1.10 : 0; // Mocking bad toilet clearance
 
                     payloadElements.Add(new
                     {
                         id = el.UniqueId,
                         category = el.Category.Name,
                         units = "DECIMAL_FEET",
-                        @params = new { width = width },
+                        @params = new { width = width, sill_height = sillHeight, frontal_clearance = mockFrontalClearance },
                         bounding_box = bbox != null ? new
                         {
                             min = new[] { bbox.Min.X, bbox.Min.Y, bbox.Min.Z },
