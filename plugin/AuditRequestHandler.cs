@@ -173,12 +173,18 @@ namespace BIMLawyerPlugin
 
         private void ApplyHeatmapColors(Document doc, List<AuditResultData> results)
         {
+            if (results == null || results.Count == 0)
+            {
+                TaskDialog.Show("Audit Notice", "No legally mapped elements were found or all evaluated elements failed to return data.");
+                return;
+            }
+
             using (Transaction t = new Transaction(doc, "BIM-Lawyer Heatmap"))
             {
                 t.Start();
                 OverrideGraphicSettings greenOptions = new OverrideGraphicSettings();
                 greenOptions.SetSurfaceForegroundPatternColor(new Color(0, 255, 0));
-                // Get built-in solid pattern
+                
                 var solidPatternId = new FilteredElementCollector(doc).OfClass(typeof(FillPatternElement)).Cast<FillPatternElement>().FirstOrDefault(a => a.GetFillPattern().IsSolidFill)?.Id;
                 if(solidPatternId != null) greenOptions.SetSurfaceForegroundPatternId(solidPatternId);
 
@@ -186,6 +192,7 @@ namespace BIMLawyerPlugin
                 redOptions.SetSurfaceForegroundPatternColor(new Color(255, 0, 0));
                 if(solidPatternId != null) redOptions.SetSurfaceForegroundPatternId(solidPatternId);
 
+                int colorCount = 0;
                 foreach (var r in results)
                 {
                     try
@@ -201,11 +208,13 @@ namespace BIMLawyerPlugin
                             {
                                 doc.ActiveView.SetElementOverrides(el.Id, redOptions);
                             }
+                            colorCount++;
                         }
                     }
                     catch { } // Ignore graphical override errors on incompatible elements
                 }
                 t.Commit();
+                // TaskDialog.Show("Debug", $"Painted {colorCount} elements out of {results.Count} returned by AI.");
             }
         }
 
@@ -214,12 +223,15 @@ namespace BIMLawyerPlugin
             using (Transaction t = new Transaction(doc, "Clear BIM-Lawyer Overrides"))
             {
                 t.Start();
-                var doorCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().ToList();
-                var rampCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Ramps).WhereElementIsNotElementType().ToList();
+                
+                var allElements = new FilteredElementCollector(doc)
+                    .WhereElementIsNotElementType()
+                    .Where(e => e.Category != null && e.Category.CategoryType == CategoryType.Model)
+                    .ToList();
                 
                 OverrideGraphicSettings clearOpts = new OverrideGraphicSettings();
                 
-                foreach (var el in doorCollector.Concat(rampCollector))
+                foreach (var el in allElements)
                 {
                     try { doc.ActiveView.SetElementOverrides(el.Id, clearOpts); } catch { }
                 }
