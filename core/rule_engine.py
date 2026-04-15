@@ -53,6 +53,41 @@ class RampSlopeRule(ComplianceRule):
             severity="HIGH" if status == "Non-Compliant" else "INFO"
         )
 
+class WindowSillHeightRule(ComplianceRule):
+    def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
+        sill_height = element.params.get("sill_height", 0)
+        required = context.get("accessibility", {}).get(jurisdiction.value, {}).get("max_window_sill_height", 0.80)
+        
+        status = "Non-Compliant" if sill_height > required else "Compliant"
+        return AuditResult(
+            element_id=element.id,
+            status=status,
+            rule_violated="Maximum Window Sill Height (Visual Access)" if status == "Non-Compliant" else None,
+            current_value=sill_height,
+            required_value=required,
+            jurisdiction=jurisdiction.value,
+            details=f"Evaluated window sill. Max Allowed for wheelchair view: {required}m. Extracted: {sill_height}m",
+            severity="WARNING" if status == "Non-Compliant" else "INFO"
+        )
+
+class SanitaryAccessibilityRule(ComplianceRule):
+    def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
+        # Simplified rule: checks if a toilet has the minimum required frontal clearance parameter
+        frontal_clearance = element.params.get("frontal_clearance", 0)
+        required = context.get("accessibility", {}).get(jurisdiction.value, {}).get("min_toilet_frontal_clearance", 1.20)
+        
+        status = "Compliant" if frontal_clearance >= required else "Non-Compliant"
+        return AuditResult(
+            element_id=element.id,
+            status=status,
+            rule_violated="Minimum Toilet Frontal Clearance" if status == "Non-Compliant" else None,
+            current_value=frontal_clearance,
+            required_value=required,
+            jurisdiction=jurisdiction.value,
+            details=f"Evaluated fixture clearance. Required: {required}m. Found: {frontal_clearance}m",
+            severity="HIGH" if status == "Non-Compliant" else "INFO"
+        )
+
 class NormativeEngine:
     """ Operations orchestration for the Normative Rules engine using Dependency Injection """
     def __init__(self, norms_path: str = "database/norms_db.json"):
@@ -62,7 +97,8 @@ class NormativeEngine:
         self.rules: Dict[str, List[ComplianceRule]] = {
             "DOOR": [DoorWidthRule()],
             "RAMP": [RampSlopeRule()],
-            # Egress and Routing rules can be added here
+            "WINDOW": [WindowSillHeightRule()],
+            "PLUMBING": [SanitaryAccessibilityRule()]
         }
 
     def _load_context(self, path: str):
@@ -72,8 +108,8 @@ class NormativeEngine:
         logger.warning("Norms database absent. Mocking baseline context.")
         return {
             "accessibility": {
-                "ADA": {"door_width": 0.81, "ramp_slope": 0.083, "corridor_width": 0.92},
-                "NBR9050": {"door_width": 0.8, "ramp_slope": 0.083, "corridor_width": 1.2}
+                "ADA": {"door_width": 0.81, "ramp_slope": 0.083, "corridor_width": 0.92, "max_window_sill_height": 0.91, "min_toilet_frontal_clearance": 1.52},
+                "NBR9050": {"door_width": 0.8, "ramp_slope": 0.083, "corridor_width": 1.2, "max_window_sill_height": 0.80, "min_toilet_frontal_clearance": 1.20}
             }
         }
 
@@ -85,6 +121,8 @@ class NormativeEngine:
         # Map Revit's BuiltInCategories to logic keys
         if "DOOR" in category: applied_rules = self.rules.get("DOOR", [])
         elif "RAMP" in category: applied_rules = self.rules.get("RAMP", [])
+        elif "WINDOW" in category: applied_rules = self.rules.get("WINDOW", [])
+        elif "PLUMBING" in category or "SANITARY" in category: applied_rules = self.rules.get("PLUMBING", [])
         
         for rule in applied_rules:
             res = rule.evaluate(element, jurisdiction, self.norms_context)
