@@ -10,14 +10,26 @@ using Autodesk.Revit.UI;
 
 namespace BIMLawyerPlugin
 {
+    public class AuditResultData
+    {
+        public string element_id { get; set; }
+        public string status { get; set; }
+        public string rule_violated { get; set; }
+        public object current_value { get; set; }
+        public object required_value { get; set; }
+    }
+
     public class AuditRequestHandler : IExternalEventHandler
     {
         public string SelectedJurisdiction { get; set; } = "NBR9050";
         public BIMLawyerUI UIWindow { get; set; }
+        public string ActiveCommand { get; set; }
 
         private static readonly HttpClient client = new HttpClient();
         private const string ApiEndpoint = "http://localhost:8000/api/v1/audit/batch";
         private const string ApiKey = "bim-lawyer-secure-key-2026"; 
+
+        private List<AuditResultData> _lastResults = new List<AuditResultData>();
 
         public void Execute(UIApplication uiapp)
         {
@@ -26,17 +38,24 @@ namespace BIMLawyerPlugin
 
             try
             {
-                UIWindow?.AppendLog("Collecting doors and ramps from current view...");
+                if (ActiveCommand == "CLEAR")
+                {
+                    ClearOverrides(doc);
+                    UIWindow?.BindDataGrid(null);
+                    return;
+                }
                 
-                var doorCollector = new FilteredElementCollector(doc)
-                    .OfCategory(BuiltInCategory.OST_Doors)
-                    .WhereElementIsNotElementType()
-                    .ToList();
+                if (ActiveCommand == "AUTO_FIX")
+                {
+                    // Placeholder skeleton for mitigation system
+                    TaskDialog.Show("Auto-Fix Engine", "Auto-fix routines will be compiled in the next sprint.");
+                    UIWindow?.BindDataGrid(_lastResults);
+                    return;
+                }
 
-                var rampCollector = new FilteredElementCollector(doc)
-                    .OfCategory(BuiltInCategory.OST_Ramps)
-                    .WhereElementIsNotElementType()
-                    .ToList();
+                // Data Extraction
+                var doorCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().ToList();
+                var rampCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Ramps).WhereElementIsNotElementType().ToList();
 
                 var payloadElements = new List<object>();
 
@@ -59,8 +78,6 @@ namespace BIMLawyerPlugin
                     });
                 }
 
-                UIWindow?.AppendLog($"Found {payloadElements.Count} elements. Sending to BIM-Lawyer Core...");
-
                 var requestBody = new
                 {
                     jurisdiction = SelectedJurisdiction,
@@ -73,35 +90,78 @@ namespace BIMLawyerPlugin
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add("X-API-Key", ApiKey);
 
-                // Make async call
-                Task.Run(async () => {
-                    try
-                    {
-                        HttpResponseMessage response = await client.PostAsync(ApiEndpoint, content);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            string resultStr = await response.Content.ReadAsStringAsync();
-                            // Very simple string find instead of full parsing for the UI log
-                            int compliantCount = resultStr.Split(new string[] { "\"status\":\"Compliant\"" }, StringSplitOptions.None).Length - 1;
-                            int total = payloadElements.Count;
-                            int nonCompliant = total - compliantCount;
-                            
-                            UIWindow?.AppendLog($"Success! Audit complete.\n- Elements passed: {compliantCount}\n- Violations found: {nonCompliant}\nCheck your lab/reports folder for the PDF.");
-                        }
-                        else
-                        {
-                            UIWindow?.AppendLog($"API returned error: {response.StatusCode}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        UIWindow?.AppendLog("Request failed: " + ex.Message);
-                    }
-                });
+                // Synchronous bridge to maintain Revit DB safety envelope
+                HttpResponseMessage response = client.PostAsync(ApiEndpoint, content).Result;
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    string resultStr = response.Content.ReadAsStringAsync().Result;
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    _lastResults = JsonSerializer.Deserialize<List<AuditResultData>>(resultStr, options);
+                    
+                    UIWindow?.BindDataGrid(_lastResults);
+                    ApplyHeatmapColors(doc, _lastResults);
+                }
             }
             catch (Exception ex)
             {
-               UIWindow?.AppendLog("Error during geometry collection: " + ex.Message);
+                UIWindow?.BindDataGrid(null);
+            }
+        }
+
+        private void ApplyHeatmapColors(Document doc, List<AuditResultData> results)
+        {
+            using (Transaction t = new Transaction(doc, "BIM-Lawyer Heatmap"))
+            {
+                t.Start();
+                OverrideGraphicSettings greenOptions = new OverrideGraphicSettings();
+                greenOptions.SetSurfaceForegroundPatternColor(new Color(0, 255, 0));
+                // Get built-in solid pattern
+                var solidPatternId = new FilteredElementCollector(doc).OfClass(typeof(FillPatternElement)).Cast<FillPatternElement>().FirstOrDefault(a => a.GetFillPattern().IsSolidFill)?.Id;
+                if(solidPatternId != null) greenOptions.SetSurfaceForegroundPatternId(solidPatternId);
+
+                OverrideGraphicSettings redOptions = new OverrideGraphicSettings();
+                redOptions.SetSurfaceForegroundPatternColor(new Color(255, 0, 0));
+                if(solidPatternId != null) redOptions.SetSurfaceForegroundPatternId(solidPatternId);
+
+                foreach (var r in results)
+                {
+                    try
+                    {
+                        Element el = doc.GetElement(r.element_id);
+                        if (el != null)
+                        {
+                            if (r.status.Contains("Compliant") && !r.status.Contains("Non-Compliant"))
+                            {
+                                doc.ActiveView.SetElementOverrides(el.Id, greenOptions);
+                            }
+                            else
+                            {
+                                doc.ActiveView.SetElementOverrides(el.Id, redOptions);
+                            }
+                        }
+                    }
+                    catch { } // Ignore graphical override errors on incompatible elements
+                }
+                t.Commit();
+            }
+        }
+
+        private void ClearOverrides(Document doc)
+        {
+            using (Transaction t = new Transaction(doc, "Clear BIM-Lawyer Overrides"))
+            {
+                t.Start();
+                var doorCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().ToList();
+                var rampCollector = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Ramps).WhereElementIsNotElementType().ToList();
+                
+                OverrideGraphicSettings clearOpts = new OverrideGraphicSettings();
+                
+                foreach (var el in doorCollector.Concat(rampCollector))
+                {
+                    try { doc.ActiveView.SetElementOverrides(el.Id, clearOpts); } catch { }
+                }
+                t.Commit();
             }
         }
 

@@ -52,23 +52,62 @@
                 <Grid Grid.Row="2" Margin="25,5,25,10">
                     <TextBlock Text="Live Audit Engine Log:" Foreground="#B0B0B0" VerticalAlignment="Top" FontSize="13"/>
                     <Border Margin="0,25,0,0" Background="#50000000" CornerRadius="8" BorderBrush="#20FFFFFF" BorderThickness="1">
-                        <TextBox x:Name="TxtLog" Margin="10" Background="Transparent" Foreground="#4CAF50" 
-                                 BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                 Text="Awaiting scan initialization..." FontFamily="Consolas"/>
+                        <DataGrid x:Name="GridResults" AutoGenerateColumns="False" HeadersVisibility="Column" 
+                                  Background="Transparent" RowBackground="Transparent" AlternatingRowBackground="#10FFFFFF"
+                                  Foreground="White" BorderThickness="0" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#20FFFFFF"
+                                  IsReadOnly="True" ItemsSource="{Binding}">
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#30000000"/>
+                                    <Setter Property="Foreground" Value="#CCCCCC"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Padding" Value="5"/>
+                                </Style>
+                            </DataGrid.Resources>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Rule" Binding="{Binding rule_violated}" Width="110"/>
+                                <DataGridTextColumn Header="Status" Binding="{Binding status}" Width="90">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding status}" Value="Compliant">
+                                                    <Setter Property="Foreground" Value="#00FF7F"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding status}" Value="Non-Compliant">
+                                                    <Setter Property="Foreground" Value="#FF4C4C"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Found" Binding="{Binding current_value}" Width="60"/>
+                                <DataGridTextColumn Header="Req." Binding="{Binding required_value}" Width="60"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </Border>
                 </Grid>
 
                 <!-- Action Buttons -->
                 <Border Grid.Row="3" Background="#10FFFFFF" CornerRadius="0,0,15,15">
-                    <Button x:Name="BtnAudit" Content="Execute Normative Audit" Width="240" Height="40" 
-                            Background="#90007ACC" Foreground="White" FontSize="14" FontWeight="Bold" Click="Audit_Click"
-                            BorderThickness="1" BorderBrush="#40FFFFFF" Cursor="Hand">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="20"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,10">
+                        <Button x:Name="BtnClear" Content="🧹 Clear" Width="80" Height="35" 
+                                Background="#30FFFFFF" Foreground="White" FontWeight="Bold" Click="Clear_Click"
+                                BorderThickness="1" BorderBrush="#40FFFFFF" Cursor="Hand" Margin="0,0,10,0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                        </Button>
+                        
+                        <Button x:Name="BtnAudit" Content="🔍 Execute Audit" Width="140" Height="35" 
+                                Background="#90007ACC" Foreground="White" FontWeight="Bold" Click="Audit_Click"
+                                BorderThickness="1" BorderBrush="#40FFFFFF" Cursor="Hand" Margin="0,0,10,0">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                        </Button>
+
+                        <Button x:Name="BtnAutoFix" Content="🔧 Auto-Fix" Width="90" Height="35" 
+                                Background="#90FF8C00" Foreground="White" FontWeight="Bold" Click="AutoFix_Click"
+                                BorderThickness="1" BorderBrush="#40FFFFFF" Cursor="Hand">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                        </Button>
+                    </StackPanel>
                 </Border>
             </Grid>
         </Border>
