@@ -50,7 +50,7 @@ namespace BIMLawyerPlugin
                         id = el.UniqueId,
                         category = el.Category.Name,
                         units = "DECIMAL_FEET",
-                        params_ = new { width = width },
+                        @params = new { width = width },
                         bounding_box = bbox != null ? new
                         {
                             min = new[] { bbox.Min.X, bbox.Min.Y, bbox.Min.Z },
