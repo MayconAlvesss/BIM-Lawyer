@@ -96,8 +96,13 @@ namespace BIMLawyerPlugin
                 if (response.IsSuccessStatusCode)
                 {
                     string resultStr = response.Content.ReadAsStringAsync().Result;
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    _lastResults = JsonSerializer.Deserialize<List<AuditResultData>>(resultStr, options);
+                    
+                    using (JsonDocument docJson = JsonDocument.Parse(resultStr))
+                    {
+                        string resultsArray = docJson.RootElement.GetProperty("results").GetRawText();
+                        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        _lastResults = JsonSerializer.Deserialize<List<AuditResultData>>(resultsArray, options);
+                    }
                     
                     UIWindow?.BindDataGrid(_lastResults);
                     ApplyHeatmapColors(doc, _lastResults);
