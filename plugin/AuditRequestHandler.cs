@@ -102,10 +102,16 @@ namespace BIMLawyerPlugin
                     UIWindow?.BindDataGrid(_lastResults);
                     ApplyHeatmapColors(doc, _lastResults);
                 }
+                else
+                {
+                    TaskDialog.Show("API Error", $"The server responded with an error: {response.StatusCode}\nEnsure the Python Uvicorn server is running correctly.");
+                    UIWindow?.BindDataGrid(null);
+                }
             }
             catch (Exception ex)
             {
                 UIWindow?.BindDataGrid(null);
+                TaskDialog.Show("Connection Error", $"Failed to connect to the BIM-Lawyer engine: {ex.Message}\n\nDid you forget to start the Uvicorn terminal as instructed?");
             }
         }
 
