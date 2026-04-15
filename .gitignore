@@ -1,0 +1,19 @@
+# Visual Studio / .NET
+[B]in/
+[O]bj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+.vs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+.env
+
+# MacOS
+.DS_Store

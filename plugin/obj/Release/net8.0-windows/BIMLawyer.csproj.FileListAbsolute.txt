@@ -1,0 +1,10 @@
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\bin\Release\net8.0-windows\BIMLawyer.deps.json
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\bin\Release\net8.0-windows\BIMLawyer.dll
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\bin\Release\net8.0-windows\BIMLawyer.pdb
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\obj\Release\net8.0-windows\BIMLawyer.csproj.AssemblyReference.cache
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\obj\Release\net8.0-windows\BIMLawyer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\obj\Release\net8.0-windows\BIMLawyer.csproj.CoreCompileInputs.cache
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\obj\Release\net8.0-windows\BIMLawyer.dll
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\obj\Release\net8.0-windows\refint\BIMLawyer.dll
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\obj\Release\net8.0-windows\BIMLawyer.pdb
+C:\Users\Administrador\Downloads\BIM-Lawyer-main\BIM-Lawyer-main\plugin\obj\Release\net8.0-windows\ref\BIMLawyer.dll

@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>BIMLawyer</AssemblyName>
@@ -9,15 +11,13 @@
 
   <ItemGroup>
     <Reference Include="RevitAPI">
-      <HintPath>/Applications/Autodesk/Revit 2024/RevitAPI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>/Applications/Autodesk/Revit 2024/RevitAPIUI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <Target Name="AfterBuild">
-    <Copy SourceFiles="BIMLawyer.addin" DestinationFolder="$(AppData)\Autodesk\Revit\Addins\2024" />
-    <Copy SourceFiles="$(OutputPath)BIMLawyer.dll" DestinationFolder="$(AppData)\Autodesk\Revit\Addins\2024" />
+    <Copy SourceFiles="BIMLawyer.addin" DestinationFolder="$(AppData)\Autodesk\Revit\Addins\2025" />
+    <Copy SourceFiles="$(OutputPath)BIMLawyer.dll" DestinationFolder="$(AppData)\Autodesk\Revit\Addins\2025" />
   </Target>
 </Project>

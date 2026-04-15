@@ -2,7 +2,7 @@ import time
 import os
 import json
 from core.schemas import BIMElement, Jurisdiction, RevitUnits
-from core.normative_engine import NormativeEngine
+from core.rule_engine import NormativeEngine
 from utils.report_generator import ComplianceReportGenerator
 from utils.logger import logger
 

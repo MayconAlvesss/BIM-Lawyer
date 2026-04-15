@@ -5,7 +5,7 @@ import logging
 import time
 
 from core.schemas import BatchAuditRequest, AuditResult, Jurisdiction
-from core.normative_engine import NormativeEngine
+from core.rule_engine import NormativeEngine
 from llm.normative_rag import NormativeRAG
 
 logging.basicConfig(level=logging.INFO)

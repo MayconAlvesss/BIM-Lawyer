@@ -1,0 +1,34 @@
+{
+    "report_metadata": {
+        "jurisdiction": "NBR9050",
+        "generated_at": "2026-04-15 19:51:16.817993",
+        "tool": "BIM-Lawyer Enterprise 2.0"
+    },
+    "audit_summary": {
+        "total_elements": 2,
+        "compliant": 1,
+        "non_compliant": 1
+    },
+    "results": [
+        {
+            "element_id": "REVIT-WALL-001",
+            "status": "Non-Compliant",
+            "rule_violated": "Minimum Door Width",
+            "current_value": 0.762,
+            "required_value": 0.8,
+            "details": "Evaluated door clearance. Required: 0.8m. Extracted: 0.762m",
+            "jurisdiction": "NBR9050",
+            "severity": "HIGH"
+        },
+        {
+            "element_id": "REVIT-RAMP-002",
+            "status": "Compliant",
+            "rule_violated": null,
+            "current_value": 0.05,
+            "required_value": 0.083,
+            "details": "Evaluated ramp pitch. Max Allowed: 8.3%. Extracted: 5.0%",
+            "jurisdiction": "NBR9050",
+            "severity": "INFO"
+        }
+    ]
+}
