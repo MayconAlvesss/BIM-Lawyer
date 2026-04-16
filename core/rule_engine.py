@@ -88,6 +88,56 @@ class SanitaryAccessibilityRule(ComplianceRule):
             severity="HIGH" if status == "Non-Compliant" else "INFO"
         )
 
+# PHASE 7: Structural & Civil Architecture Rules
+class WallThicknessRule(ComplianceRule):
+    def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
+        h = element.params.get("thickness", element.params.get("width", 0))
+        if h == 0: return None
+        req = 0.10
+        status = "Compliant" if h >= req else "Non-Compliant"
+        return AuditResult(element_id=element.id, status=status, rule_violated="Min Wall Thickness (0.10m)", current_value=round(h,3), required_value=req, jurisdiction=jurisdiction.value, details="Minimum structural block.", severity="HIGH")
+
+class WallLengthExpansionRule(ComplianceRule):
+    def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
+        l = element.params.get("length", 0)
+        if l == 0: return None
+        req = 15.0
+        status = "Compliant" if l <= req else "Non-Compliant"
+        return AuditResult(element_id=element.id, status=status, rule_violated="Max Wall Run (15m Expansion Joint)", current_value=round(l,3), required_value=req, jurisdiction=jurisdiction.value, details="Walls longer than 15m crack without joints.", severity="HIGH")
+
+class WallHeightRule(ComplianceRule):
+    def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
+        h = element.params.get("unconnected_height", element.params.get("height", 0))
+        if h == 0: return None
+        req = 4.0
+        status = "Compliant" if h <= req else "Non-Compliant"
+        return AuditResult(element_id=element.id, status=status, rule_violated="Max Unbraced Wall Height (4m)", current_value=round(h,3), required_value=req, jurisdiction=jurisdiction.value, details="Walls taller need beams.", severity="WARNING")
+
+class StairWidthRule(ComplianceRule):
+    def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
+        w = element.params.get("width", 0)
+        if w == 0: return None
+        req = 1.20
+        status = "Compliant" if w >= req else "Non-Compliant"
+        return AuditResult(element_id=element.id, status=status, rule_violated="Min Stair Route Width (1.2m)", current_value=round(w,3), required_value=req, jurisdiction=jurisdiction.value, details="Fire Egress limit.", severity="HIGH")
+
+class MinimumCeilingHeightRule(ComplianceRule):
+    def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
+        h = element.params.get("height_offset", 0)
+        if h == 0: return None
+        req = 2.40
+        status = "Compliant" if h >= req else "Non-Compliant"
+        return AuditResult(element_id=element.id, status=status, rule_violated="Min Habitable Ceiling (2.40m)", current_value=round(h,3), required_value=req, jurisdiction=jurisdiction.value, details="Habitability.", severity="HIGH")
+
+class MinimumDoorHeightRule(ComplianceRule):
+    def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
+        h = element.params.get("height", 0)
+        if h == 0: return None
+        req = 2.10
+        status = "Compliant" if h >= req else "Non-Compliant"
+        return AuditResult(element_id=element.id, status=status, rule_violated="Min Door Height (2.10m)", current_value=round(h,3), required_value=req, jurisdiction=jurisdiction.value, details="Anthropometric clearance.", severity="HIGH")
+
+
 class NormativeEngine:
     """ Operations orchestration for the Normative Rules engine using Dependency Injection """
     def __init__(self, norms_path: str = "database/norms_db.json"):
@@ -95,10 +145,13 @@ class NormativeEngine:
         
         # Load Rule Strategies
         self.rules: Dict[str, List[ComplianceRule]] = {
-            "DOOR": [DoorWidthRule()],
+            "DOOR": [DoorWidthRule(), MinimumDoorHeightRule()],
             "RAMP": [RampSlopeRule()],
             "WINDOW": [WindowSillHeightRule()],
-            "PLUMBING": [SanitaryAccessibilityRule()]
+            "PLUMBING": [SanitaryAccessibilityRule()],
+            "WALL": [WallThicknessRule(), WallLengthExpansionRule(), WallHeightRule()],
+            "STAIR": [StairWidthRule()],
+            "CEILING": [MinimumCeilingHeightRule()]
         }
 
     def _load_context(self, path: str):
@@ -123,10 +176,14 @@ class NormativeEngine:
         elif "RAMP" in category: applied_rules = self.rules.get("RAMP", [])
         elif "WINDOW" in category: applied_rules = self.rules.get("WINDOW", [])
         elif "PLUMBING" in category or "SANITARY" in category: applied_rules = self.rules.get("PLUMBING", [])
+        elif "WALL" in category: applied_rules = self.rules.get("WALL", [])
+        elif "STAIR" in category: applied_rules = self.rules.get("STAIR", [])
+        elif "CEIL" in category or "ROOF" in category: applied_rules = self.rules.get("CEILING", [])
         
         for rule in applied_rules:
             res = rule.evaluate(element, jurisdiction, self.norms_context)
-            results.append(res)
+            if res: # Only append if the rule didn't return None
+                results.append(res)
             
         if not results:
             results.append(AuditResult(

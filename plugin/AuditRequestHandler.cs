@@ -112,6 +112,14 @@ namespace BIMLawyerPlugin
                     BoundingBoxXYZ bbox = el.get_BoundingBox(null);
                     double? width = GetParameterAsDouble(el, BuiltInParameter.DOOR_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.WINDOW_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.GENERIC_WIDTH);
                     double? sillHeight = GetParameterAsDouble(el, BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM);
+                    double? height = GetParameterAsDouble(el, BuiltInParameter.DOOR_HEIGHT) ?? GetParameterAsDouble(el, BuiltInParameter.WINDOW_HEIGHT) ?? GetParameterAsDouble(el, BuiltInParameter.GENERIC_HEIGHT);
+                    double? thickness = GetParameterAsDouble(el, BuiltInParameter.WALL_BASE_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM) ?? GetParameterAsDouble(el, BuiltInParameter.GENERIC_THICKNESS);
+                    double? length = GetParameterAsDouble(el, BuiltInParameter.CURVE_ELEM_LENGTH);
+                    double? unconnHeight = GetParameterAsDouble(el, BuiltInParameter.WALL_USER_HEIGHT_PARAM);
+                    double? heightOffset = GetParameterAsDouble(el, BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM);
+                    double? riserHeight = GetParameterAsDouble(el, BuiltInParameter.STAIRS_ACTUAL_RISER_HEIGHT);
+                    double? treadDepth = GetParameterAsDouble(el, BuiltInParameter.STAIRS_ACTUAL_TREAD_DEPTH);
+                    
                     double mockFrontalClearance = el.Category.Name.Contains("Plumbing") ? 1.10 : 0; // Mocking bad toilet clearance
 
                     payloadElements.Add(new
@@ -119,12 +127,23 @@ namespace BIMLawyerPlugin
                         id = el.UniqueId,
                         category = el.Category.Name,
                         units = "DECIMAL_FEET",
-                        @params = new { width = width, sill_height = sillHeight, frontal_clearance = mockFrontalClearance },
-                        bounding_box = new
+                        @params = new { 
+                            width = width, 
+                            height = height,
+                            sill_height = sillHeight, 
+                            thickness = thickness,
+                            length = length,
+                            unconnected_height = unconnHeight,
+                            height_offset = heightOffset,
+                            riser_height = riserHeight,
+                            tread_depth = treadDepth,
+                            frontal_clearance = mockFrontalClearance 
+                        },
+                        bounding_box = bbox != null ? new
                         {
                             min = new[] { bbox.Min.X, bbox.Min.Y, bbox.Min.Z },
                             max = new[] { bbox.Max.X, bbox.Max.Y, bbox.Max.Z }
-                        }
+                        } : null
                     });
                 }
 
