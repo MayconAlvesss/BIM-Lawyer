@@ -99,11 +99,10 @@ namespace BIMLawyerPlugin
                     return;
                 }
 
-                // Data Extraction: Omni-Collector Engine
-                var allElements = new FilteredElementCollector(doc)
+                // Data Extraction: Omni-Collector Engine (High Performance View Filter)
+                var allElements = new FilteredElementCollector(doc, doc.ActiveView.Id)
                     .WhereElementIsNotElementType()
                     .Where(e => e.Category != null && e.Category.CategoryType == CategoryType.Model)
-                    .Where(e => e.get_BoundingBox(null) != null) // Ensure it is an actual physical 3D object
                     .ToList();
 
                 var payloadElements = new List<object>();
@@ -224,7 +223,7 @@ namespace BIMLawyerPlugin
             {
                 t.Start();
                 
-                var allElements = new FilteredElementCollector(doc)
+                var allElements = new FilteredElementCollector(doc, doc.ActiveView.Id)
                     .WhereElementIsNotElementType()
                     .Where(e => e.Category != null && e.Category.CategoryType == CategoryType.Model)
                     .ToList();
