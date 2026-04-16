@@ -113,7 +113,7 @@ namespace BIMLawyerPlugin
                     double? width = GetParameterAsDouble(el, BuiltInParameter.DOOR_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.WINDOW_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.GENERIC_WIDTH);
                     double? sillHeight = GetParameterAsDouble(el, BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM);
                     double? height = GetParameterAsDouble(el, BuiltInParameter.DOOR_HEIGHT) ?? GetParameterAsDouble(el, BuiltInParameter.WINDOW_HEIGHT) ?? GetParameterAsDouble(el, BuiltInParameter.GENERIC_HEIGHT);
-                    double? thickness = GetParameterAsDouble(el, BuiltInParameter.WALL_BASE_WIDTH) ?? GetParameterAsDouble(el, BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM) ?? GetParameterAsDouble(el, BuiltInParameter.GENERIC_THICKNESS);
+                    double? thickness = GetParameterAsDouble(el, BuiltInParameter.WALL_ATTR_WIDTH_PARAM) ?? GetParameterAsDouble(el, BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM) ?? GetParameterAsDouble(el, BuiltInParameter.GENERIC_THICKNESS);
                     double? length = GetParameterAsDouble(el, BuiltInParameter.CURVE_ELEM_LENGTH);
                     double? unconnHeight = GetParameterAsDouble(el, BuiltInParameter.WALL_USER_HEIGHT_PARAM);
                     double? heightOffset = GetParameterAsDouble(el, BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM);
