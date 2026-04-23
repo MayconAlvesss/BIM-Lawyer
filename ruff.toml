@@ -1,0 +1,11 @@
+[lint]
+select = ["E", "W", "F"]
+ignore = [
+    "E501",   # line too long — enforced only when readability is critical
+    "E701",   # multiple statements on one line — used deliberately in compact rule guards
+    "E402",   # module level import not at top — required in test files using sys.path.insert
+]
+
+[lint.per-file-ignores]
+"lab/*" = ["F841"]   # lab scripts are explorative; unused variable assignments are expected
+"tests/*" = ["E402"]

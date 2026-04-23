@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class ComplianceRule(ABC):
     """ Abstract Strategy class for Normative Audit Rules. """
-    
+
     @abstractmethod
     def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
         pass
@@ -21,9 +21,9 @@ class DoorWidthRule(ComplianceRule):
         width = element.params.get("width")
         if not width and element.bounding_box:
             width = GeometricEngine.get_clear_width(element.bounding_box)
-            
+
         required = context.get("accessibility", {}).get(jurisdiction.value, {}).get("door_width", 0.80)
-        
+
         status = "Compliant" if width and width >= required else "Non-Compliant"
         return AuditResult(
             element_id=element.id,
@@ -40,7 +40,7 @@ class RampSlopeRule(ComplianceRule):
     def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
         slope = element.params.get("slope", 0)
         required = context.get("accessibility", {}).get(jurisdiction.value, {}).get("ramp_slope", 0.0833)
-        
+
         status = "Non-Compliant" if slope > required else "Compliant"
         return AuditResult(
             element_id=element.id,
@@ -57,7 +57,7 @@ class WindowSillHeightRule(ComplianceRule):
     def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
         sill_height = element.params.get("sill_height", 0)
         required = context.get("accessibility", {}).get(jurisdiction.value, {}).get("max_window_sill_height", 0.80)
-        
+
         status = "Non-Compliant" if sill_height > required else "Compliant"
         return AuditResult(
             element_id=element.id,
@@ -75,7 +75,7 @@ class SanitaryAccessibilityRule(ComplianceRule):
         # Simplified rule: checks if a toilet has the minimum required frontal clearance parameter
         frontal_clearance = element.params.get("frontal_clearance", 0)
         required = context.get("accessibility", {}).get(jurisdiction.value, {}).get("min_toilet_frontal_clearance", 1.20)
-        
+
         status = "Compliant" if frontal_clearance >= required else "Non-Compliant"
         return AuditResult(
             element_id=element.id,
@@ -99,11 +99,11 @@ class WallThicknessRule(ComplianceRule):
 
 class WallLengthExpansionRule(ComplianceRule):
     def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
-        l = element.params.get("length", 0)
-        if l == 0: return None
+        wall_length = element.params.get("length", 0)
+        if wall_length == 0: return None
         req = 15.0
-        status = "Compliant" if l <= req else "Non-Compliant"
-        return AuditResult(element_id=element.id, status=status, rule_violated="Max Wall Run (15m Expansion Joint)", current_value=round(l,3), required_value=req, jurisdiction=jurisdiction.value, details="Walls longer than 15m crack without joints.", severity="HIGH")
+        status = "Compliant" if wall_length <= req else "Non-Compliant"
+        return AuditResult(element_id=element.id, status=status, rule_violated="Max Wall Run (15m Expansion Joint)", current_value=round(wall_length,3), required_value=req, jurisdiction=jurisdiction.value, details="Walls longer than 15m crack without joints.", severity="HIGH")
 
 class WallHeightRule(ComplianceRule):
     def evaluate(self, element: BIMElement, jurisdiction: Jurisdiction, context: Dict) -> AuditResult:
@@ -142,7 +142,7 @@ class NormativeEngine:
     """ Operations orchestration for the Normative Rules engine using Dependency Injection """
     def __init__(self, norms_path: str = "database/norms_db.json"):
         self.norms_context = self._load_context(norms_path)
-        
+
         # Load Rule Strategies
         self.rules: Dict[str, List[ComplianceRule]] = {
             "DOOR": [DoorWidthRule(), MinimumDoorHeightRule()],
@@ -170,7 +170,7 @@ class NormativeEngine:
         category = element.category.upper()
         results = []
         applied_rules = []
-        
+
         # Map Revit's BuiltInCategories to logic keys
         if "DOOR" in category: applied_rules = self.rules.get("DOOR", [])
         elif "RAMP" in category: applied_rules = self.rules.get("RAMP", [])
@@ -179,12 +179,12 @@ class NormativeEngine:
         elif "WALL" in category: applied_rules = self.rules.get("WALL", [])
         elif "STAIR" in category: applied_rules = self.rules.get("STAIR", [])
         elif "CEIL" in category or "ROOF" in category: applied_rules = self.rules.get("CEILING", [])
-        
+
         for rule in applied_rules:
             res = rule.evaluate(element, jurisdiction, self.norms_context)
             if res: # Only append if the rule didn't return None
                 results.append(res)
-            
+
         if not results:
             results.append(AuditResult(
                 element_id=element.id,
@@ -196,7 +196,7 @@ class NormativeEngine:
                 details=f"Scanned by Omni-Collector. Category: {category}",
                 severity="INFO"
             ))
-            
+
         return results
 
     def batch_audit(self, elements: List[Dict[str, Any]], jurisdiction: Jurisdiction) -> List[AuditResult]:

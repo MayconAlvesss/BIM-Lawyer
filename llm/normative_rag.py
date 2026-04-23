@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import os
 import logging
 
@@ -16,14 +16,14 @@ logger = logging.getLogger(__name__)
 
 class NormativeRAG:
     """
-    Enterprise RAG architecture integrating FAISS/ChromaDB with LangChain 
+    Enterprise RAG architecture integrating FAISS/ChromaDB with LangChain
     to map normative rules against building codes dynamically.
     """
     def __init__(self, db_path: str = "database/chroma_sim"):
         self.db_path = db_path
         self.vector_store = None
         self.qa_chain = None
-        
+
         # In a real environment, this initializes the connection to the Vector DB
         if LANGCHAIN_AVAILABLE and os.getenv("OPENAI_API_KEY"):
             self._initialize_chain()
@@ -38,19 +38,19 @@ class NormativeRAG:
             else:
                 # Fallback to in-memory for initialization if path doesn't exist yet
                 self.vector_store = Chroma(embedding_function=embeddings)
-                
+
             llm = ChatOpenAI(temperature=0.0, model_name="gpt-4-turbo")
-            
+
             prompt_template = """
             You are a senior AEC compliance officer. Use the following pieces of retrieved building code to assist.
             If you don't know the answer based on the context, say you can't verify compliance.
-            
+
             Context: {context}
             Question: {question}
             Answer:
             """
             PROMPT = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
-            
+
             self.qa_chain = RetrievalQA.from_chain_type(
                 llm=llm,
                 chain_type="stuff",
@@ -64,7 +64,7 @@ class NormativeRAG:
 
     async def query_norm(self, query: str, jurisdiction: str = "ADA") -> Dict[str, str]:
         """ Queries the vector database for a specific normative code reference. """
-        
+
         if self.qa_chain:
             try:
                 res = self.qa_chain({"query": f"Under {jurisdiction}: {query}"})
@@ -75,7 +75,7 @@ class NormativeRAG:
                 }
             except Exception as e:
                 logger.error(f"RAG Error: {e}")
-                
+
         # Mocking the RAG response for demonstration when Langchain/Keys aren't active
         if "door" in query.lower() and "ADA" in jurisdiction:
             return {
@@ -87,7 +87,7 @@ class NormativeRAG:
                 "answer": "NBR 9050:2015 §6.6.2.1 estabelece que a inclinação máxima de rampas deve ser de 8,33%.",
                 "source": "ABNT NBR 9050:2015, Cláusula 6.6.2.1"
             }
-        
+
         return {
             "answer": "Generic rule mapping provided. Please verify against technical document in context.",
             "source": f"Vector Index: {jurisdiction} Baseline"
@@ -99,11 +99,11 @@ class NormativeRAG:
         rule = audit_result.get("rule_violated")
         curr = audit_result.get("current_value")
         req = audit_result.get("required_value")
-        
+
         if self.qa_chain:
             # Here it would use an LLM specifically to write the recommendation
-            pass 
-            
+            pass
+
         return (
             f"Action Required for {element_id}: The detected {rule} of {curr} fails to meet the "
             f"mandatory requirement of {req}. Recommendation: Review the geometry and ensure proper "
