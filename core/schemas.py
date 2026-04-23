@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Any
 from enum import Enum
 
 class Jurisdiction(str, Enum):
@@ -18,7 +18,7 @@ class BIMElement(BaseModel):
     units: RevitUnits = Field(default=RevitUnits.DECIMAL_FEET, description="Original unit coordinate system.")
     params: Dict[str, Any] = Field(..., description="Extracted instance parameters.")
     bounding_box: Optional[Dict[str, List[float]]] = Field(
-        None, 
+        None,
         description="Min and Max coordinates of the element's bounding box [x, y, z]."
     )
 
@@ -44,7 +44,7 @@ class BIMElement(BaseModel):
 
 class AuditResult(BaseModel):
     element_id: str
-    status: str 
+    status: str
     rule_violated: Optional[str] = None
     current_value: Any
     required_value: Any

@@ -20,7 +20,6 @@ from core.rule_engine import (
     WallLengthExpansionRule,
     StairWidthRule,
     MinimumCeilingHeightRule,
-    MinimumDoorHeightRule,
 )
 from core.schemas import BIMElement, Jurisdiction, RevitUnits
 

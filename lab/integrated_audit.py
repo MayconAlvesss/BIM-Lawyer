@@ -1,7 +1,4 @@
-import time
-import os
-import json
-from core.schemas import BIMElement, Jurisdiction, RevitUnits
+from core.schemas import Jurisdiction, RevitUnits
 from core.rule_engine import NormativeEngine
 from utils.report_generator import ComplianceReportGenerator
 from utils.logger import logger
@@ -12,7 +9,7 @@ def run_debug_audit():
     Generates the requested PDF and JSON reports for verification.
     """
     logger.info("Starting Integrated Debug Audit...")
-    
+
     # 1. Mock Revit Data (Raw Decimal Feet)
     mock_payload = [
         {
@@ -34,21 +31,21 @@ def run_debug_audit():
     # 2. Execute Audit Logic
     engine = NormativeEngine()
     jurisdiction = Jurisdiction.BRAZIL # NBR 9050
-    
+
     logger.info(f"Auditing {len(mock_payload)} elements against {jurisdiction.value}...")
     results = engine.batch_audit(mock_payload, jurisdiction)
-    
+
     # 3. Generate Reports
     reporter = ComplianceReportGenerator()
-    
+
     logger.info("Generating Audit Documentation...")
     json_path = reporter.generate_json([r.dict() for r in results], jurisdiction.value)
     pdf_path = reporter.generate_pdf([r.dict() for r in results], jurisdiction.value)
-    
-    logger.info(f"Debug Complete.")
+
+    logger.info("Debug Complete.")
     logger.info(f"JSON Report: {json_path}")
     logger.info(f"PDF/Text Report: {pdf_path}")
-    
+
     # Output summary to console for immediate debug view
     print("\n--- AUDIT DEBUG SUMMARY ---")
     for res in results:

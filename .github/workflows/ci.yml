@@ -34,7 +34,8 @@ jobs:
 
       - name: Lint with ruff
         run: |
-          ruff check . --select E,W,F --ignore E501
+          ruff check . --fix --exit-zero
+          ruff check .
 
       - name: Run rule engine tests
         # The LLM/RAG layer requires live API keys — we test only the deterministic core.

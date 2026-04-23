@@ -5,7 +5,6 @@ Simulates the extraction of geometric and metadata parameters from an IFC file.
 Provides the data source for the RuleEngine to perform compliance checks.
 """
 
-import random
 import uuid
 from typing import List, Dict, Any
 
@@ -13,7 +12,7 @@ class IFCMockParser:
     """
     Mock parser that simulates data extraction from an IFC model (ISO 16739).
     """
-    
+
     def __init__(self, project_name: str = "Demo Project"):
         self.project_name = project_name
 

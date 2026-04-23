@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict, Any
 import logging
 import time
 
@@ -63,17 +62,17 @@ async def batch_audit(request: BatchAuditRequest, background_tasks: BackgroundTa
     """
     if not request.elements:
         raise HTTPException(status_code=400, detail="No elements provided for audit.")
-        
+
     start_time = time.time()
-    
+
     # Run the object-oriented rules engine
     # Elements are passed as dictionaries so BIMElement Pydantic schema can run its unit-conversion validators
     raw_elements = [el.dict() for el in request.elements]
     results = engine.batch_audit(raw_elements, request.jurisdiction)
-    
+
     audit_time = time.time() - start_time
     logger.info(f"Processed {len(raw_elements)} elements in {audit_time:.4f}s")
-    
+
     return {
         "status": "success",
         "jurisdiction": request.jurisdiction.value,
@@ -89,11 +88,11 @@ async def explain_audit(result: AuditResult):
     """
     if result.status == "Compliant":
         return {"message": "Audit passed. No explanation required."}
-        
+
     query = f"Why does a {result.rule_violated} of {result.current_value} clear width fail?"
     explanation = await rag.query_norm(query, jurisdiction=result.jurisdiction)
     suggestion = await rag.generate_audit_suggestion(result.dict())
-    
+
     return {
         "element": result.element_id,
         "violation": result.rule_violated,

@@ -23,7 +23,7 @@ class ComplianceReportGenerator:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"audit_{jurisdiction}_{timestamp}.json"
         path = os.path.join(self.output_dir, filename)
-        
+
         with open(path, "w") as f:
             json.dump({
                 "report_metadata": {
@@ -44,7 +44,7 @@ class ComplianceReportGenerator:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"compliance_report_{jurisdiction}_{timestamp}.pdf"
         path = os.path.join(self.output_dir, filename)
-        
+
         if not FPDF_AVAILABLE:
             # Fallback for systems without fpdf - simple txt report
             path = path.replace(".pdf", ".txt")
@@ -60,12 +60,12 @@ class ComplianceReportGenerator:
         pdf.add_page()
         pdf.set_font("Arial", "B", 16)
         pdf.cell(190, 10, "BIM-Lawyer Compliance Audit Report", ln=True, align="C")
-        
+
         pdf.set_font("Arial", "", 12)
         pdf.ln(10)
         pdf.cell(190, 10, f"Jurisdiction: {jurisdiction}", ln=True)
         pdf.cell(190, 10, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
-        
+
         pdf.ln(10)
         pdf.set_font("Arial", "B", 12)
         pdf.cell(60, 10, "Element ID", border=1)
